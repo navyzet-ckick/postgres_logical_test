@@ -1,0 +1,37 @@
+---
+- name: Add repository apt-key
+  apt_key:
+    id: "ACCC4CF8"
+    url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+    state: present
+- name: Add  repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ postgresql_version }}"
+    state: present
+- name: Add repository preferences
+  template:
+    src: etc_apt_preferences.d_apt_postgresql_org_pub_repos_apt.pref.j2
+    dest: /etc/apt/preferences.d/apt_postgresql_org_pub_repos_apt.pref
+- name: Install PostgreSQL
+  apt:
+    name:
+      - "postgresql-{{postgresql_version}}"
+      - "postgresql-client-{{postgresql_version}}"
+      - "postgresql-contrib-{{postgresql_version}}"
+    state: present
+    update_cache: yes
+    default_release: "{{postgresql_default_release | default(ansible_distribution_release + '-pgdg')}}"
+    cache_valid_time: 3600
+  environment: "{{postgresql_env}}"
+- name: dependencies are installed
+  apt:
+    pkg:
+      - python3-psycopg2
+      - locales
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+- name: Dump cluster shema
+  shell: sudo -u postgres pg_dumpall --schema-only > /tmp/pg_shema_only.sql
+  delegate_to: serverel-postgres-1
+  run_once: True

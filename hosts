@@ -1,0 +1,17 @@
+
+serverel-postgres-1 ansible_ssh_host=109.206.188.18 ansible_ssh_port=222 ansible_ssh_user=navyzet
+[pg_master]
+pg-master-test ansible_ssh_host=3.15.141.103
+
+[pg_replica]
+pg-replica-test ansible_ssh_host=18.223.172.87 
+
+[pg_test:children]
+pg_replica
+pg_master
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file=/home/navyzet/.ssh/amazon_id_rsa
+

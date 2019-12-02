@@ -1,0 +1,10 @@
+---
+postgresql_version: 10
+postgresql_locale_parts:
+  - "en_US" # Locale
+  - "UTF-8" # Encoding
+postgresql_locale: "{{ postgresql_locale_parts | join('.') }}"
+postgresql_env:
+  LC_ALL: "{{ postgresql_locale }}"
+  LC_LCTYPE: "{{ postgresql_locale }}"
+postgresql_admin_user: "postgres"

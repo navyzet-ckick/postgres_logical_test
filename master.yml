@@ -1,0 +1,41 @@
+---
+- hosts: pg_master
+  gather_facts: True
+  become: True
+
+  roles:
+  - my-postgres
+  
+  tasks:
+
+  - name: Check dump exist
+    stat:
+      path: /tmp/pg_shema_only.sql
+    register: pg_shema_file
+    delegate_to: localhost
+    run_once: True
+    become: False
+
+  - name: Dump cluster shema
+    shell: sudo -u postgres pg_dumpall --schema-only > /tmp/pg_shema_only.sql
+    delegate_to: serverel-postgres-1
+    run_once: True
+    when: pg_shema_file.stat.exists == False
+
+  - name: Copy dump to localhost
+    fetch:
+      src: /tmp/pg_shema_only.sql
+      dest: /tmp/pg_shema_only.sql
+      flat: True
+    delegate_to: serverel-postgres-1
+    run_once: True
+    when: pg_shema_file.stat.exists == False
+
+  - name: Send dump to replica
+    copy:
+      src: /tmp/pg_shema_only.sql
+      dest: /tmp/pg_shema_only.sql
+  
+  - name: Restore postgres shema
+    shell: psql < /tmp/pg_shema_only.sql
+    become_user: postgres
